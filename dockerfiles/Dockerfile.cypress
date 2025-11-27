@@ -4,9 +4,12 @@ WORKDIR /e2e
 
 COPY package*.json ./
 
+RUN npm install
+RUN apt-get update && apt-get install -y jq
+
 COPY run-suite.sh /e2e/run-suite.sh
+RUN chmod +x /e2e/run-suite.sh
 
 ENTRYPOINT ["/bin/bash", "-c", "chmod +x /e2e/run-suite.sh && npm install && exec \"$@\"", "--"]
 
 CMD ["./run-suite.sh"]
-
