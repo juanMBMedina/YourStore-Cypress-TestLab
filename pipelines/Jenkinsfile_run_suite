@@ -16,17 +16,6 @@ def extractPropertyValue(file, property) {
     """, returnStdout: true).trim()
 }
 
-def cleanCypressTempDir(){
-    dir(CYPRESS_DIR) {
-        script {
-            echo "Cleaning Cypress temporary directory, excluding node_modules"
-            sh """
-                find . -mindepth 1 -not -path './node_modules*' -exec rm -rf {} +
-            """
-        }
-    }
-}
-
 pipeline {
     agent any
 
@@ -76,12 +65,6 @@ pipeline {
                         string(name: 'BRANCH', value: params.DEFAULT_BRANCH)
                     ]
                 }
-            }
-        }
-        
-        stage('First: Clean Temporary Directory') {
-            steps {
-                cleanCypressTempDir()
             }
         }
 
@@ -137,12 +120,6 @@ pipeline {
                         ])
                     }
                 }
-            }
-        }
-
-        stage('Second: Clean Temporary Directory') {
-            steps {
-                cleanCypressTempDir()
             }
         }
         

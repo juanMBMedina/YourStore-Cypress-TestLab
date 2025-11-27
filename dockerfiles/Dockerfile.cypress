@@ -10,10 +10,6 @@ RUN apt-get update && apt-get install -y jq
 COPY run-suite.sh /e2e/run-suite.sh
 RUN chmod +x /e2e/run-suite.sh
 
-<<<<<<< HEAD
 ENTRYPOINT ["/bin/bash", "-c", "chmod +x /e2e/run-suite.sh && npm install && exec \"$@\"", "--"]
-=======
-ENTRYPOINT ["/bin/bash", "-c", "npm install && exec \"$@\"", "--"]
->>>>>>> 43bfc4ae6fe0bb23b5efd94ec9f970f0a75a56b0
 
 CMD ["./run-suite.sh"]
