@@ -82,7 +82,7 @@ pipeline {
 
                             sh '''
                                 export SONAR_TOKEN=${SONAR_TOKEN}
-                                docker-compose -f docker-compose.scanner.yml run --rm sonar-scanner
+                                docker compose -f docker-compose.scanner.yml run --rm sonar-scanner
                             '''
                             
                         }

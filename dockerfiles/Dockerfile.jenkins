@@ -2,48 +2,59 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Update and install necessary dependencies (slimmed down with --no-install-recommends)
+# Update and install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      apt-transport-https \
-      ca-certificates \
-      curl \
-      software-properties-common \
-      unzip && \
-    # Install Docker CLI
-    curl -fsSL https://get.docker.com -o get-docker.sh && \
-    sh get-docker.sh && \
-    rm get-docker.sh && \
-    # Install Docker Compose
-    curl -SL https://github.com/docker/compose/releases/download/v2.33.1/docker-compose-linux-x86_64 \
-      -o /usr/local/bin/docker-compose && \
-    chmod +x /usr/local/bin/docker-compose && \
-    # Clean up
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends \
+  ca-certificates \
+  curl \
+  gnupg \
+  unzip && \
+  \
+  # Add Docker official GPG key
+  install -m 0755 -d /etc/apt/keyrings && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
+  chmod a+r /etc/apt/keyrings/docker.asc && \
+  \
+  # Add Docker repository
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+  > /etc/apt/sources.list.d/docker.list && \
+  \
+  # Install Docker CLI + Docker Compose v2
+  apt-get update && \
+  apt-get install -y --no-install-recommends \
+  docker-ce-cli \
+  docker-compose-plugin && \
+  \
+  # Clean up
+  rm -rf /var/lib/apt/lists/*
 
 # Install Maven
 ENV MAVEN_VERSION=3.9.9 \
-    MAVEN_HOME=/opt/maven
+  MAVEN_HOME=/opt/maven
 RUN curl -fsSL \
-      https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
-    | tar -xz -C /opt && \
-    ln -s /opt/apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
-    ln -s ${MAVEN_HOME}/bin/mvn /usr/bin/mvn
+  https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+  | tar -xz -C /opt && \
+  ln -s /opt/apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
+  ln -s ${MAVEN_HOME}/bin/mvn /usr/bin/mvn
 
 # Install Gradle
 ENV GRADLE_VERSION=8.13 \
-    GRADLE_HOME=/opt/gradle
+  GRADLE_HOME=/opt/gradle
 RUN curl -fsSL \
-      https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip \
-      -o gradle-${GRADLE_VERSION}-bin.zip && \
-    unzip gradle-${GRADLE_VERSION}-bin.zip -d /opt && \
-    rm gradle-${GRADLE_VERSION}-bin.zip && \
-    ln -s /opt/gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
-    ln -s ${GRADLE_HOME}/bin/gradle /usr/bin/gradle
+  https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip \
+  -o gradle-${GRADLE_VERSION}-bin.zip && \
+  unzip gradle-${GRADLE_VERSION}-bin.zip -d /opt && \
+  rm gradle-${GRADLE_VERSION}-bin.zip && \
+  ln -s /opt/gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
+  ln -s ${GRADLE_HOME}/bin/gradle /usr/bin/gradle
 
 # Copy and make executable your SSH setup script
-COPY dockerfiles/setup-ssh.sh /usr/local/bin/setup-ssh.sh
-RUN chmod +x /usr/local/bin/setup-ssh.sh
-
+COPY dockerfiles/setup-ssh.sh /var/jenkins_home/setup-ssh.sh
+RUN chmod +x /var/jenkins_home/setup-ssh.sh
+# Set Jenkins JVM options to disable CSP
+ENV JAVA_OPTS="-Dhudson.model.DirectoryBrowserSupport.CSP=\"\""
 # Switch back to the Jenkins user
 USER jenkins
