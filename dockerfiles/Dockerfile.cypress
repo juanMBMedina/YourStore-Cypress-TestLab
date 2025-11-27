@@ -1,10 +1,15 @@
 FROM cypress/included:14.1.0
+
 WORKDIR /e2e
+
 COPY package*.json ./
+
 RUN npm install
 RUN apt-get update && apt-get install -y jq
+
 COPY run-suite.sh /e2e/run-suite.sh
 RUN chmod +x /e2e/run-suite.sh
 
-ENTRYPOINT ["/bin/bash"]
-CMD ["-c", "echo 'Container are ready. Uses run-suite.sh to run the tests.'"]
+ENTRYPOINT ["/bin/bash", "-c", "npm install && exec \"$@\"", "--"]
+
+CMD ["./run-suite.sh"]
