@@ -12,6 +12,7 @@ module.exports = defineConfig({
   e2e: {
     chromeWebSecurity: false,
     baseUrl: "https://opencart.abstracta.us",
+    specPattern: 'cypress/e2e/**/*.cy.js',
 
     setupNodeEvents(on, config) {
       // Implementación de eventos de Cypress
